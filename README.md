@@ -10,14 +10,17 @@ I built **EcoPulse**, a lightweight Earth Day web concept that helps people turn
 The goal is to make sustainability feel practical, social, and repeatable instead of overwhelming.
 
 ## Demo
-Project overview and submission details are documented in this repository:
+No deployed app is included in this weekend submission window.  
+Demo is provided as a short walkthrough of the intended user experience:
 
-- https://github.com/Lanthanum89/earth-day-dev-submission
+- Choose a weekly eco-action from suggested local activities.
+- Log completed actions and see a simple running impact history.
+- Share one weekly action publicly to motivate friends/community.
 
 ## Code
-Source code and submission content:
+Submission source:
 
-- https://github.com/Lanthanum89/earth-day-dev-submission
+- ./README.md
 
 ## How I Built It
 I used **GitHub Copilot** throughout development to speed up ideation and drafting:
