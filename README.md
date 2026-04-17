@@ -1,22 +1,32 @@
 *This is a submission for [Weekend Challenge: Earth Day Edition](https://dev.to/challenges/weekend-2026-04-16)*
 
-TBC
-
 ## What I Built
-<!-- Tell us about your project! What does it do and what was your intended goal? -->
+I built **EcoPulse**, a lightweight Earth Day web concept that helps people turn climate concern into action through a simple weekly loop:
+
+1. Pick a local, planet-positive action (bike commute, meatless day, cleanup, native planting).
+2. Log your impact in a tiny dashboard.
+3. Share one result with your community to encourage others.
+
+The goal is to make sustainability feel practical, social, and repeatable instead of overwhelming.
 
 ## Demo
-<!-- Embed your project (i.e. Cloud Run) or share a deployed link/video demo of your project -->
+Project overview and submission details are documented in this repository:
+
+- https://github.com/Lanthanum89/earth-day-dev-submission
 
 ## Code
-<!-- Show us the code! You can embed a GitHub repo directly into your post. -->
+Source code and submission content:
+
+- https://github.com/Lanthanum89/earth-day-dev-submission
 
 ## How I Built It
-<!-- Walk us through your technical approach and any interesting decisions you made along the way. If you used any of the prize category technologies, be sure to highlight how you incorporated them here! -->
+I used **GitHub Copilot** throughout development to speed up ideation and drafting:
+
+- Brainstormed Earth Day feature options and narrowed scope to a weekend-sized MVP.
+- Drafted and refined submission content with clear, structured sections.
+- Iterated quickly on wording so the project clearly maps to theme, creativity, and technical execution criteria.
 
 ## Prize Categories
-<!-- Are you submitting to any prize categories? Note which ones apply (Best Use of Backboard, Best Use of Auth0 for Agents, Best Use of Google Gemini, Best Use of Snowflake, Best Use of GitHub Copilot, Best Use of Solana). If not, you can remove this section. -->
+I am submitting for:
 
-<!-- Team Submissions: Please pick one member to publish the submission and credit teammates by listing their DEV usernames directly in the body of the post. -->
-
-<!-- Thanks for participating! -->
+- **Best use of GitHub Copilot**
