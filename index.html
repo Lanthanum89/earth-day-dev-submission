@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Women in Tech — Global Map</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #1a0a14;
+      overflow: hidden;
+      font-family: 'Press Start 2P', monospace;
+      color: #ffb6d9;
+      image-rendering: pixelated;
+    }
+
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      top: 0; left: 0;
+    }
+
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    #ui-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #title {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      text-align: center;
+      text-shadow: 0 0 12px #ff69b4, 0 0 24px #ff1493;
+      letter-spacing: 2px;
+      line-height: 1.8;
+    }
+
+    #title span {
+      font-size: 9px;
+      color: #ff8ec4;
+      display: block;
+      margin-top: 4px;
+    }
+
+    #tooltip {
+      position: absolute;
+      display: none;
+      background: rgba(40, 10, 30, 0.92);
+      border: 2px solid #ff69b4;
+      padding: 12px 16px;
+      font-size: 8px;
+      line-height: 1.8;
+      pointer-events: none;
+      box-shadow: 0 0 16px rgba(255, 105, 180, 0.4);
+      max-width: 260px;
+      image-rendering: pixelated;
+    }
+
+    #tooltip .country-name {
+      font-size: 10px;
+      color: #ff69b4;
+      margin-bottom: 6px;
+    }
+
+    #tooltip .percentage {
+      font-size: 16px;
+      color: #fff;
+      text-shadow: 0 0 8px #ff69b4;
+    }
+
+    #tooltip .bar-container {
+      width: 100%;
+      height: 8px;
+      background: #3a0a24;
+      margin: 8px 0;
+      border: 1px solid #ff69b4;
+    }
+
+    #tooltip .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff1493, #ff69b4);
+      transition: width 0.3s;
+    }
+
+    #legend {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 7px;
+      text-align: center;
+      line-height: 2;
+      opacity: 0.8;
+    }
+
+    #legend .gradient-bar {
+      width: 200px;
+      height: 10px;
+      margin: 8px auto;
+      border: 1px solid #ff69b4;
+      background: linear-gradient(90deg, #4a0a2e, #8b1a5a, #d63384, #ff69b4, #ffb6d9);
+    }
+
+    #legend .labels {
+      display: flex;
+      justify-content: space-between;
+      width: 200px;
+      margin: 0 auto;
+    }
+
+    #instructions {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 7px;
+      opacity: 0.5;
+      text-align: center;
+    }
+
+    .pixel-border {
+      box-shadow:
+        4px 0 0 0 #ff69b4,
+        -4px 0 0 0 #ff69b4,
+        0 4px 0 0 #ff69b4,
+        0 -4px 0 0 #ff69b4;
+    }
+
+    #stats-panel {
+      position: absolute;
+      top: 100px;
+      right: 24px;
+      font-size: 7px;
+      line-height: 2.2;
+      text-align: right;
+      opacity: 0.7;
+    }
+
+    #stats-panel .stat-value {
+      color: #ff69b4;
+      font-size: 10px;
+    }
+
+    .scanline {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 105, 180, 0.03) 2px,
+        rgba(255, 105, 180, 0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div id="ui-overlay">
+    <div id="title">
+      WOMEN IN TECH
+      <span>% of tech workforce that is female, by country</span>
+    </div>
+
+    <div id="tooltip" class="pixel-border">
+      <div class="country-name"></div>
+      <div class="percentage"></div>
+      <div class="bar-container"><div class="bar-fill"></div></div>
+      <div class="detail"></div>
+    </div>
+
+    <div id="stats-panel">
+      GLOBAL AVERAGE<br/>
+      <span class="stat-value" id="global-avg">—</span><br/><br/>
+      COUNTRIES TRACKED<br/>
+      <span class="stat-value" id="country-count">—</span><br/><br/>
+      HIGHEST<br/>
+      <span class="stat-value" id="highest-country">—</span><br/><br/>
+      LOWEST<br/>
+      <span class="stat-value" id="lowest-country">—</span>
+    </div>
+
+    <div id="legend">
+      FEMALE % OF TECH WORKFORCE
+      <div class="gradient-bar"></div>
+      <div class="labels">
+        <span>5%</span>
+        <span>15%</span>
+        <span>25%</span>
+        <span>35%</span>
+        <span>50%</span>
+      </div>
+    </div>
+
+    <div id="instructions">
+      DRAG TO ROTATE · SCROLL TO ZOOM · HOVER MARKERS FOR DATA
+    </div>
+  </div>
+
+  <div class="scanline"></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ─── Data: Female % of tech workforce by country ───
+    // Sources: World Bank, UNESCO, Deloitte, McKinsey reports (approximate)
+    const countryData = [
+      { name: "United States", lat: 38.9, lon: -77.0, pct: 26, region: "North America" },
+      { name: "Canada", lat: 45.4, lon: -75.7, pct: 25, region: "North America" },
+      { name: "Mexico", lat: 19.4, lon: -99.1, pct: 20, region: "Latin America" },
+      { name: "Brazil", lat: -15.8, lon: -47.9, pct: 19, region: "Latin America" },
+      { name: "Argentina", lat: -34.6, lon: -58.4, pct: 18, region: "Latin America" },
+      { name: "Colombia", lat: 4.7, lon: -74.1, pct: 17, region: "Latin America" },
+      { name: "Chile", lat: -33.4, lon: -70.6, pct: 16, region: "Latin America" },
+      { name: "United Kingdom", lat: 51.5, lon: -0.1, pct: 26, region: "Europe" },
+      { name: "Germany", lat: 52.5, lon: 13.4, pct: 18, region: "Europe" },
+      { name: "France", lat: 48.9, lon: 2.3, pct: 28, region: "Europe" },
+      { name: "Sweden", lat: 59.3, lon: 18.1, pct: 30, region: "Europe" },
+      { name: "Norway", lat: 59.9, lon: 10.8, pct: 28, region: "Europe" },
+      { name: "Finland", lat: 60.2, lon: 24.9, pct: 26, region: "Europe" },
+      { name: "Denmark", lat: 55.7, lon: 12.6, pct: 25, region: "Europe" },
+      { name: "Netherlands", lat: 52.4, lon: 4.9, pct: 22, region: "Europe" },
+      { name: "Spain", lat: 40.4, lon: -3.7, pct: 20, region: "Europe" },
+      { name: "Italy", lat: 41.9, lon: 12.5, pct: 15, region: "Europe" },
+      { name: "Poland", lat: 52.2, lon: 21.0, pct: 30, region: "Europe" },
+      { name: "Romania", lat: 44.4, lon: 26.1, pct: 29, region: "Europe" },
+      { name: "Bulgaria", lat: 42.7, lon: 23.3, pct: 33, region: "Europe" },
+      { name: "Lithuania", lat: 54.7, lon: 25.3, pct: 31, region: "Europe" },
+      { name: "Latvia", lat: 56.9, lon: 24.1, pct: 29, region: "Europe" },
+      { name: "Estonia", lat: 59.4, lon: 24.7, pct: 27, region: "Europe" },
+      { name: "Portugal", lat: 38.7, lon: -9.1, pct: 22, region: "Europe" },
+      { name: "Ireland", lat: 53.3, lon: -6.3, pct: 25, region: "Europe" },
+      { name: "Switzerland", lat: 46.9, lon: 7.4, pct: 17, region: "Europe" },
+      { name: "Austria", lat: 48.2, lon: 16.4, pct: 16, region: "Europe" },
+      { name: "Czech Republic", lat: 50.1, lon: 14.4, pct: 14, region: "Europe" },
+      { name: "Russia", lat: 55.8, lon: 37.6, pct: 29, region: "Europe/Asia" },
+      { name: "Ukraine", lat: 50.4, lon: 30.5, pct: 25, region: "Europe" },
+      { name: "Turkey", lat: 39.9, lon: 32.9, pct: 15, region: "Middle East" },
+      { name: "Israel", lat: 31.8, lon: 35.2, pct: 24, region: "Middle East" },
+      { name: "UAE", lat: 24.5, lon: 54.4, pct: 22, region: "Middle East" },
+      { name: "Saudi Arabia", lat: 24.7, lon: 46.7, pct: 14, region: "Middle East" },
+      { name: "India", lat: 28.6, lon: 77.2, pct: 34, region: "Asia" },
+      { name: "China", lat: 39.9, lon: 116.4, pct: 28, region: "Asia" },
+      { name: "Japan", lat: 35.7, lon: 139.7, pct: 16, region: "Asia" },
+      { name: "South Korea", lat: 37.6, lon: 127.0, pct: 18, region: "Asia" },
+      { name: "Singapore", lat: 1.3, lon: 103.8, pct: 28, region: "Asia" },
+      { name: "Malaysia", lat: 3.1, lon: 101.7, pct: 35, region: "Asia" },
+      { name: "Thailand", lat: 13.8, lon: 100.5, pct: 32, region: "Asia" },
+      { name: "Philippines", lat: 14.6, lon: 121.0, pct: 46, region: "Asia" },
+      { name: "Vietnam", lat: 21.0, lon: 105.8, pct: 30, region: "Asia" },
+      { name: "Indonesia", lat: -6.2, lon: 106.8, pct: 21, region: "Asia" },
+      { name: "Bangladesh", lat: 23.8, lon: 90.4, pct: 12, region: "Asia" },
+      { name: "Pakistan", lat: 33.7, lon: 73.0, pct: 9, region: "Asia" },
+      { name: "Australia", lat: -33.9, lon: 151.2, pct: 28, region: "Oceania" },
+      { name: "New Zealand", lat: -41.3, lon: 174.8, pct: 27, region: "Oceania" },
+      { name: "South Africa", lat: -33.9, lon: 18.4, pct: 23, region: "Africa" },
+      { name: "Nigeria", lat: 9.1, lon: 7.5, pct: 19, region: "Africa" },
+      { name: "Kenya", lat: -1.3, lon: 36.8, pct: 21, region: "Africa" },
+      { name: "Ghana", lat: 5.6, lon: -0.2, pct: 18, region: "Africa" },
+      { name: "Egypt", lat: 30.0, lon: 31.2, pct: 14, region: "Africa" },
+      { name: "Morocco", lat: 34.0, lon: -6.8, pct: 16, region: "Africa" },
+      { name: "Rwanda", lat: -1.9, lon: 29.9, pct: 31, region: "Africa" },
+      { name: "Ethiopia", lat: 9.0, lon: 38.7, pct: 11, region: "Africa" },
+      { name: "Tanzania", lat: -6.8, lon: 37.3, pct: 15, region: "Africa" },
+    ];
+
+    // ─── Computed stats ───
+    const avgPct = Math.round(countryData.reduce((s, c) => s + c.pct, 0) / countryData.length);
+    const highest = countryData.reduce((a, b) => a.pct > b.pct ? a : b);
+    const lowest = countryData.reduce((a, b) => a.pct < b.pct ? a : b);
+
+    document.getElementById('global-avg').textContent = avgPct + '%';
+    document.getElementById('country-count').textContent = countryData.length;
+    document.getElementById('highest-country').textContent = highest.name + ' ' + highest.pct + '%';
+    document.getElementById('lowest-country').textContent = lowest.name + ' ' + lowest.pct + '%';
+
+    // ─── Color helper ───
+    function pctToColor(pct) {
+      const t = Math.max(0, Math.min(1, (pct - 5) / 45));
+      const r = Math.round(74 + t * 181);
+      const g = Math.round(10 + t * 172);
+      const b = Math.round(46 + t * 171);
+      return new THREE.Color(r / 255, g / 255, b / 255);
+    }
+
+    // ─── Scene Setup ───
+    const PIXELATION_FACTOR = 3; // higher = more pixelated
+    const container = document.getElementById('canvas-container');
+
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(1 / PIXELATION_FACTOR);
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a0a14);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 3.5);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.rotateSpeed = 0.5;
+    controls.minDistance = 2;
+    controls.maxDistance = 8;
+    controls.enablePan = false;
+
+    // ─── Lighting ───
+    const ambientLight = new THREE.AmbientLight(0xff69b4, 0.3);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffb6d9, 0.8);
+    directionalLight.position.set(5, 3, 5);
+    scene.add(directionalLight);
+
+    const backLight = new THREE.DirectionalLight(0xd63384, 0.3);
+    backLight.position.set(-5, -3, -5);
+    scene.add(backLight);
+
+    // ─── Pixelated Globe ───
+    // Create globe with low-poly look
+    const globeGeometry = new THREE.IcosahedronGeometry(1, 4);
+    const globeMaterial = new THREE.MeshLambertMaterial({
+      color: 0x2a0a1e,
+      emissive: 0x1a0a14,
+      emissiveIntensity: 0.3,
+      wireframe: false,
+      flatShading: true,
+    });
+    const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+    scene.add(globe);
+
+    // Wireframe overlay
+    const wireframeMat = new THREE.MeshBasicMaterial({
+      color: 0x4a1a3a,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.2,
+    });
+    const wireframe = new THREE.Mesh(globeGeometry.clone(), wireframeMat);
+    wireframe.scale.setScalar(1.002);
+    scene.add(wireframe);
+
+    // ─── Pixel grid on globe surface (decorative latitude/longitude lines) ───
+    function createGridLines() {
+      const gridGroup = new THREE.Group();
+      const gridMaterial = new THREE.LineBasicMaterial({
+        color: 0x5a1a4a,
+        transparent: true,
+        opacity: 0.15,
+      });
+
+      // Latitude lines
+      for (let lat = -80; lat <= 80; lat += 20) {
+        const points = [];
+        const phi = (90 - lat) * (Math.PI / 180);
+        for (let lon = 0; lon <= 360; lon += 5) {
+          const theta = lon * (Math.PI / 180);
+          const r = 1.005;
+          points.push(new THREE.Vector3(
+            -r * Math.sin(phi) * Math.cos(theta),
+            r * Math.cos(phi),
+            r * Math.sin(phi) * Math.sin(theta)
+          ));
+        }
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        gridGroup.add(new THREE.Line(geometry, gridMaterial));
+      }
+
+      // Longitude lines
+      for (let lon = 0; lon < 360; lon += 20) {
+        const points = [];
+        const theta = lon * (Math.PI / 180);
+        for (let lat = -90; lat <= 90; lat += 5) {
+          const phi = (90 - lat) * (Math.PI / 180);
+          const r = 1.005;
+          points.push(new THREE.Vector3(
+            -r * Math.sin(phi) * Math.cos(theta),
+            r * Math.cos(phi),
+            r * Math.sin(phi) * Math.sin(theta)
+          ));
+        }
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        gridGroup.add(new THREE.Line(geometry, gridMaterial));
+      }
+
+      return gridGroup;
+    }
+    scene.add(createGridLines());
+
+    // ─── Glow effect ───
+    const glowGeometry = new THREE.IcosahedronGeometry(1.15, 3);
+    const glowMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff69b4,
+      transparent: true,
+      opacity: 0.04,
+      side: THREE.BackSide,
+    });
+    scene.add(new THREE.Mesh(glowGeometry, glowMaterial));
+
+    const glowGeometry2 = new THREE.IcosahedronGeometry(1.25, 3);
+    const glowMaterial2 = new THREE.MeshBasicMaterial({
+      color: 0xd63384,
+      transparent: true,
+      opacity: 0.02,
+      side: THREE.BackSide,
+    });
+    scene.add(new THREE.Mesh(glowGeometry2, glowMaterial2));
+
+    // ─── Data markers (pixel columns) ───
+    function latLonToVec3(lat, lon, radius) {
+      const phi = (90 - lat) * (Math.PI / 180);
+      const theta = (lon + 180) * (Math.PI / 180);
+      return new THREE.Vector3(
+        -radius * Math.sin(phi) * Math.cos(theta),
+        radius * Math.cos(phi),
+        radius * Math.sin(phi) * Math.sin(theta)
+      );
+    }
+
+    const markers = [];
+    const markerGroup = new THREE.Group();
+
+    countryData.forEach((country) => {
+      const pos = latLonToVec3(country.lat, country.lon, 1.0);
+      const height = 0.03 + (country.pct / 50) * 0.35;
+      const color = pctToColor(country.pct);
+
+      // Create a pixelated box column
+      const boxGeo = new THREE.BoxGeometry(0.04, height, 0.04);
+      boxGeo.translate(0, height / 2, 0);
+
+      const boxMat = new THREE.MeshLambertMaterial({
+        color: color,
+        emissive: color,
+        emissiveIntensity: 0.3,
+        flatShading: true,
+      });
+
+      const mesh = new THREE.Mesh(boxGeo, boxMat);
+
+      // Position and orient outward from globe center
+      mesh.position.copy(pos);
+      mesh.lookAt(0, 0, 0);
+      mesh.rotateX(Math.PI / 2);
+
+      mesh.userData = country;
+      markers.push(mesh);
+      markerGroup.add(mesh);
+
+      // Base dot (pixel)
+      const dotGeo = new THREE.BoxGeometry(0.05, 0.01, 0.05);
+      const dotMat = new THREE.MeshBasicMaterial({
+        color: 0xff69b4,
+        transparent: true,
+        opacity: 0.6,
+      });
+      const dot = new THREE.Mesh(dotGeo, dotMat);
+      dot.position.copy(pos);
+      dot.lookAt(0, 0, 0);
+      dot.rotateX(Math.PI / 2);
+      markerGroup.add(dot);
+    });
+
+    scene.add(markerGroup);
+
+    // ─── Stars background (pixel stars) ───
+    const starCount = 600;
+    const starPositions = new Float32Array(starCount * 3);
+    const starColors = new Float32Array(starCount * 3);
+
+    for (let i = 0; i < starCount; i++) {
+      starPositions[i * 3] = (Math.random() - 0.5) * 40;
+      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 40;
+      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+
+      const pink = Math.random();
+      starColors[i * 3] = 0.7 + pink * 0.3;
+      starColors[i * 3 + 1] = 0.3 + pink * 0.3;
+      starColors[i * 3 + 2] = 0.5 + pink * 0.5;
+    }
+
+    const starGeometry = new THREE.BufferGeometry();
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+
+    const starMaterial = new THREE.PointsMaterial({
+      size: 0.05,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+    });
+    scene.add(new THREE.Points(starGeometry, starMaterial));
+
+    // ─── Raycaster for hover ───
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const tooltip = document.getElementById('tooltip');
+    let hoveredMarker = null;
+
+    function onMouseMove(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(markers);
+
+      if (intersects.length > 0) {
+        const marker = intersects[0].object;
+        const data = marker.userData;
+
+        if (hoveredMarker !== marker) {
+          // Reset previous
+          if (hoveredMarker) {
+            hoveredMarker.material.emissiveIntensity = 0.3;
+            hoveredMarker.scale.set(1, 1, 1);
+          }
+          hoveredMarker = marker;
+          marker.material.emissiveIntensity = 0.8;
+          marker.scale.set(1.5, 1, 1.5);
+        }
+
+        tooltip.style.display = 'block';
+        tooltip.style.left = (event.clientX + 16) + 'px';
+        tooltip.style.top = (event.clientY - 16) + 'px';
+
+        // Keep tooltip on screen
+        const rect = tooltip.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+          tooltip.style.left = (event.clientX - rect.width - 16) + 'px';
+        }
+        if (rect.bottom > window.innerHeight) {
+          tooltip.style.top = (event.clientY - rect.height - 16) + 'px';
+        }
+
+        tooltip.querySelector('.country-name').textContent = data.name;
+        tooltip.querySelector('.percentage').textContent = data.pct + '%';
+        tooltip.querySelector('.bar-fill').style.width = Math.min(100, (data.pct / 50 * 100)) + '%';
+        tooltip.querySelector('.detail').textContent = data.region + ' · ' + data.pct + '% female tech workforce';
+      } else {
+        tooltip.style.display = 'none';
+        if (hoveredMarker) {
+          hoveredMarker.material.emissiveIntensity = 0.3;
+          hoveredMarker.scale.set(1, 1, 1);
+          hoveredMarker = null;
+        }
+      }
+    }
+
+    window.addEventListener('mousemove', onMouseMove);
+
+    // ─── Animation ───
+    let time = 0;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      time += 0.005;
+
+      // Slow auto-rotation
+      globe.rotation.y += 0.001;
+      wireframe.rotation.y += 0.001;
+      markerGroup.rotation.y += 0.001;
+
+      // Gentle breathing glow for markers
+      markers.forEach((m, i) => {
+        const pulse = 0.25 + Math.sin(time * 2 + i * 0.5) * 0.08;
+        m.material.emissiveIntensity = m === hoveredMarker ? 0.8 : pulse;
+      });
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // ─── Resize ───
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
