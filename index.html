@@ -302,7 +302,7 @@
     document.getElementById('highest-country').textContent = highest.name + ' ' + highest.pct + '%';
     document.getElementById('lowest-country').textContent = lowest.name + ' ' + lowest.pct + '%';
 
-    // ─── Color helper ───
+    // ─── Colour helper ───
     function pctToColor(pct) {
       const t = Math.max(0, Math.min(1, (pct - 5) / 45));
       const r = Math.round(74 + t * 181);
@@ -470,7 +470,7 @@
 
       const mesh = new THREE.Mesh(boxGeo, boxMat);
 
-      // Position and orient outward from globe center
+      // Position and orient outward from globe centre
       mesh.position.copy(pos);
       mesh.lookAt(0, 0, 0);
       mesh.rotateX(Math.PI / 2);
