@@ -312,12 +312,12 @@
     }
 
     // ─── Scene Setup ───
-    const PIXEL_RATIO = 3; // lower = more pixelated
+    const PIXELATION_FACTOR = 3; // higher = more pixelated
     const container = document.getElementById('canvas-container');
 
     const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(1 / PIXEL_RATIO);
+    renderer.setPixelRatio(1 / PIXELATION_FACTOR);
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
     container.appendChild(renderer.domElement);
@@ -566,7 +566,7 @@
 
         tooltip.querySelector('.country-name').textContent = data.name;
         tooltip.querySelector('.percentage').textContent = data.pct + '%';
-        tooltip.querySelector('.bar-fill').style.width = (data.pct / 50 * 100) + '%';
+        tooltip.querySelector('.bar-fill').style.width = Math.min(100, (data.pct / 50 * 100)) + '%';
         tooltip.querySelector('.detail').textContent = data.region + ' · ' + data.pct + '% female tech workforce';
       } else {
         tooltip.style.display = 'none';
