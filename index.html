@@ -112,7 +112,7 @@
       height: 10px;
       margin: 8px auto;
       border: 1px solid #ff69b4;
-      background: linear-gradient(90deg, #4a0a2e, #8b1a5a, #d63384, #ff69b4, #ffb6d9);
+      background: linear-gradient(90deg, #1e0a50, #8c0f8c, #d73282, #ff69b4, #ffb6d9);
     }
 
     #legend .labels {
@@ -201,12 +201,12 @@
     <div id="legend">
       FEMALE % OF TECH WORKFORCE
       <div class="gradient-bar"></div>
-      <div class="labels">
-        <span>5%</span>
-        <span>15%</span>
-        <span>25%</span>
-        <span>35%</span>
-        <span>50%</span>
+      <div class="labels" id="legend-labels">
+        <span>—</span>
+        <span>—</span>
+        <span>—</span>
+        <span>—</span>
+        <span>—</span>
       </div>
     </div>
 
@@ -303,11 +303,41 @@
     document.getElementById('lowest-country').textContent = lowest.name + ' ' + lowest.pct + '%';
 
     // ─── Colour helper ───
+    const minPct = Math.min(...countryData.map(c => c.pct));
+    const maxPct = Math.max(...countryData.map(c => c.pct));
+
+    // Populate legend labels based on actual data range
+    {
+      const legendLabels = document.getElementById('legend-labels').children;
+      const steps = legendLabels.length;
+      for (let i = 0; i < steps; i++) {
+        const val = Math.round(minPct + (maxPct - minPct) * (i / (steps - 1)));
+        legendLabels[i].textContent = val + '%';
+      }
+    }
+
     function pctToColor(pct) {
-      const t = Math.max(0, Math.min(1, (pct - 5) / 45));
-      const r = Math.round(74 + t * 181);
-      const g = Math.round(10 + t * 172);
-      const b = Math.round(46 + t * 171);
+      // Normalize against the actual data range for maximum colour spread
+      const t = Math.max(0, Math.min(1, (pct - minPct) / (maxPct - minPct)));
+
+      // Multi-stop gradient: deep indigo → magenta → hot pink → light pink
+      let r, g, b;
+      if (t < 0.33) {
+        const s = t / 0.33;
+        r = Math.round(30 + s * 110);   // 30 → 140
+        g = Math.round(10 + s * 5);     // 10 → 15
+        b = Math.round(80 + s * 60);    // 80 → 140
+      } else if (t < 0.66) {
+        const s = (t - 0.33) / 0.33;
+        r = Math.round(140 + s * 75);   // 140 → 215
+        g = Math.round(15 + s * 35);    // 15 → 50
+        b = Math.round(140 - s * 10);   // 140 → 130
+      } else {
+        const s = (t - 0.66) / 0.34;
+        r = Math.round(215 + s * 40);   // 215 → 255
+        g = Math.round(50 + s * 132);   // 50 → 182
+        b = Math.round(130 + s * 87);   // 130 → 217
+      }
       return new THREE.Color(r / 255, g / 255, b / 255);
     }
 
